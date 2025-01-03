@@ -46,6 +46,13 @@ resource "aws_instance" "blog" {
   }
 }
 
+resource "aws_lb_target_group" "blog" {
+  name     = "blog-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.blog_vpc.vpc_id
+  target_type = "instance"
+}
 
 module "alb" {
   source = "terraform-aws-modules/alb/aws"
