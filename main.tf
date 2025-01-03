@@ -58,26 +58,37 @@ module "alb" {
   source = "terraform-aws-modules/alb/aws"
 
   name    = "blog-alb"
+
+  load_balancer_type = "application"
   vpc_id  = module.blog_vpc.vpc_id 
   subnets = module.blog_vpc.public_subnets
   security_groups = [module.blog_sg.security_group_id]
 
-  target_groups =  [
+  target_groups = [
     {
-      name_prefix = "blog-"
+      name_prefix = "blog-tg"
       backend_protocol = "HTTP"
-      backend_port     = 80
-      target_type      = "instance"
-      targets = [
-        {
+      backend_port = 80
+      target_type = "instance"
+      deregistration_delay = 10
+      health_check = {
+        enabled = true
+        interval = 30
+        path = "/"
+        port = "traffic-port"
+        healthy_threshold = 3
+        unhealthy_threshold = 3
+        timeout = 6
+      }
+      attachments = {
+        instance = {
           target_id = aws_instance.blog.id
-          port      = 80
+          port = 80
         }
-      ]
+      }
     }
   ]
-
-  listeners = [
+  http_tcp_listener = [
     {
       port               = 80
       protocol           = "HTTP"
